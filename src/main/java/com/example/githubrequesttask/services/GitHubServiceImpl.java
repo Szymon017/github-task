@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.springframework.http.HttpHeaders;
 
 
 @Service
@@ -25,12 +26,14 @@ public class GitHubServiceImpl implements GitHubService {
     public Flux<Repository> getRepositories(String username) {
         return this.webClient.get().uri("/users/{username}/repos", username)
                 .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .onStatus(HttpStatus.NOT_FOUND::equals, response ->
                         Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
                 .onStatus(HttpStatus.FORBIDDEN::equals, response ->
                         Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden access")))
                 .bodyToFlux(JsonNode.class)
+                .filter(repositoryJson -> !repositoryJson.get("fork").asBoolean())
                 .flatMap(repositoryJson -> {
                     String repoName = repositoryJson.get("name").asText();
                     String owner = repositoryJson.get("owner").get("login").asText();
