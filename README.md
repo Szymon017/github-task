@@ -16,5 +16,7 @@ Accept: application/json
 2. Open project in InteliJ or other IDE
 3. Build the project using Maven
 4. Run the application
-5 Make get request using Postman or different program
+5. Make get request using Postman or different program
+
+
 
